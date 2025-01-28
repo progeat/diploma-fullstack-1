@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
 	Account,
 	Authorization,
@@ -17,6 +17,7 @@ import { AuthMiddleWare, Header, Loader, Modal } from './components';
 import { setAccounts, setCategories, setIsLoadingAccounts, setUser } from './actions';
 import { request } from './utils';
 import styled from 'styled-components';
+import { selectUserId } from './selectors';
 
 const AppColumn = styled.div`
 	position: relative;
@@ -40,6 +41,7 @@ const Page = styled.div`
 export const App = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const dispatch = useDispatch();
+	const isUser = useSelector(selectUserId);
 
 	useLayoutEffect(() => {
 		const currentUserDataJSON = sessionStorage.getItem('userData');
@@ -59,24 +61,31 @@ export const App = () => {
 	}, [dispatch]);
 
 	useEffect(() => {
-		Promise.all([request('/accounts'), request('/categories')])
-			.then(([accountsRes, categoriesRes]) => {
-				if (accountsRes.error || categoriesRes.error) {
-					console.error('Ошибка:', accountsRes.error || categoriesRes.error);
-					return;
-				}
+		if (isUser) {
+			Promise.all([request('/accounts'), request('/categories')])
+				.then(([accountsRes, categoriesRes]) => {
+					if (accountsRes.error || categoriesRes.error) {
+						console.error(
+							'Ошибка:',
+							accountsRes.error || categoriesRes.error,
+						);
+						return;
+					}
 
-				console.log('accounts', accountsRes);
-				console.log('categories', categoriesRes);
+					console.log('accounts', accountsRes);
+					console.log('categories', categoriesRes);
 
-				dispatch(setAccounts(accountsRes.data));
-				dispatch(setCategories(categoriesRes.data));
-			})
-			.finally(() => {
-				dispatch(setIsLoadingAccounts(false));
-				setIsLoading(false);
-			});
-	}, [dispatch]);
+					dispatch(setAccounts(accountsRes.data));
+					dispatch(setCategories(categoriesRes.data));
+				})
+				.finally(() => {
+					dispatch(setIsLoadingAccounts(false));
+					setIsLoading(false);
+				});
+		} else {
+			setIsLoading(false);
+		}
+	}, [dispatch, isUser]);
 
 	if (isLoading) {
 		return <Loader />;
