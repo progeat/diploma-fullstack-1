@@ -11,6 +11,7 @@ const app = express();
 
 app.use(express.static(path.resolve('..', 'frontend', 'build')));
 
+// app.use(express.static('../frontend/dist'));
 app.use(cookieParser());
 app.use(express.json());
 

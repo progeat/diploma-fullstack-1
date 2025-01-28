@@ -66,6 +66,9 @@ export const App = () => {
 					return;
 				}
 
+				console.log('accounts', accountsRes);
+				console.log('categories', categoriesRes);
+
 				dispatch(setAccounts(accountsRes.data));
 				dispatch(setCategories(categoriesRes.data));
 			})
